@@ -191,6 +191,7 @@ async def main(SCREEN):
     global game_speed,x_pos_bg,y_pos_bg,points,obstacles
     run = True
     clock = pygame.time.Clock()
+    await asyncio.sleep(0)
     player = Desmond()
     CLOUD = Clouds()
     game_speed = 15
@@ -292,6 +293,7 @@ asyncio.run(main())
 while True:
     menu(death_count)
     death_count = main(SCREEN)
+
 
 
 
