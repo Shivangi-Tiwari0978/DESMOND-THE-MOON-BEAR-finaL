@@ -1,3 +1,4 @@
+import asyncio
 import pygame
 from sys import exit
 import random
@@ -186,7 +187,7 @@ class SpaceShip(Obstacle):
 
 
 death_count = 0
-def main(SCREEN):
+async def main(SCREEN):
     global game_speed,x_pos_bg,y_pos_bg,points,obstacles
     run = True
     clock = pygame.time.Clock()
@@ -285,10 +286,13 @@ def menu(death_count):
                 run = False
             if event.type == pygame.KEYDOWN:
                 return
+asyncio.run(main())
+
 
 while True:
     menu(death_count)
     death_count = main(SCREEN)
+
 
 
 
