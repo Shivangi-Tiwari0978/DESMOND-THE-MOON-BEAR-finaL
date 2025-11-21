@@ -16,37 +16,30 @@ background = pygame.image.load('BACKGROUND.png')
 background = pygame.transform.scale(background, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
 #images of desmond
-walking = [pygame.image.load('walk img/walk1.png').convert_alpha(), pygame.image.load('walk img/walk2.png'), pygame.image.load(
-    'walk img/walk3.png'), pygame.image.load('walk img/walk4.png'), pygame.image.load('walk img/walk5.png'), pygame.image.load(
-    'walk img/walk6.png')]
-for pic in walking:
-    pic = pygame.transform.scale(pic, (20, 20)).convert_alpha()
+walking = [pygame.transform.scale(pygame.image.load(f'CODE/Images/walk img/walk{i}.png').convert_alpha(), (50, 50)) for i in range(1, 7)]
 
 idle = pygame.image.load('desmond_idle.png')
-jumping = [pygame.image.load('jump img/jump1.png'), pygame.image.load('jump img/jump2.png'), pygame.image.load(
-    'jump img/jump3.png'), pygame.image.load('jump img/jump4.png'), pygame.image.load('jump img/jump5.png'), pygame.image.load(
-    'jump img/jump6.png'), pygame.image.load('jump img/jump7.png'), pygame.image.load('jump img/jump8.png')]
-
+walking = [pygame.transform.scale(pygame.image.load(f'CODE/Images/walk img/walk{i}.png').convert_alpha(), (50, 50)) for i in range(1, 7)]
 
 #obstacles and stuff
 ships = [pygame.image.load('SHIPS/ship1.png'),pygame.image.load('SHIPS/ship2.png'),pygame.image.load('SHIPS/ship3.png')]
-for ship in ships:
-    ship = pygame.transform.scale(ship, (40, 40)).convert_alpha()
+for i in range(len(ships)):
+    ships[i] = pygame.transform.scale(ships[i], (40, 40)).convert_alpha()
+
 clouds = [pygame.image.load('CLOUDS/clouds1.png'),pygame.image.load('CLOUDS/clouds2.png')]
 rock_small = [pygame.image.load('rock2.png'),pygame.image.load('smallRock3.png'),pygame.image.load('small Rock4.png')]
-for rock in rock_small:
-    rock = pygame.transform.scale(rock, (40, 40)).convert_alpha()
+for i in range(len(rock_small)):
+    rock_small[i] = pygame.transform.scale(rock_small[i], (40, 40)).convert_alpha()
+
 rockk1 = pygame.image.load('rock1.png')
 rockk1 = pygame.transform.scale(rockk1, (90, 70)).convert_alpha()
 rockk2 = pygame.image.load('LargeRock5.png')
 rockk2 = pygame.transform.scale(rockk2, (100, 100)).convert_alpha()
 rock_large = [rockk1, rockk2]
 
-
+GROUND_Y = 600
 class Desmond:
     X_POS = 80
-    Y_POS = 550
-    Y_POS_DUCK = 950
     JUMP_VEL = 11
 
 
@@ -57,6 +50,14 @@ class Desmond:
 
         self.jump_img = jumping
 
+        self.image = self.run_img[0]
+        self.X_POS = 50
+        self.Y_POS = GROUND_Y - self.image.get_height()
+
+        self.desmond_rect = self.image.get_rect()
+        self.desmond_rect.x = self.X_POS
+        self.desmond_rect.y = self.Y_POS
+        
         self.desmond_run = True
         self.desmond_jump = False
 
@@ -64,10 +65,8 @@ class Desmond:
         self.step_index = 0
         self.jump_index = 0
         self.jump_vel  = self.JUMP_VEL
-        self.image = self.run_img[0]
-        self.desmond_rect = self.image.get_rect()
-        self.desmond_rect.x = self.X_POS
-        self.desmond_rect.y = self.Y_POS
+        
+        
 
 
 
@@ -80,10 +79,10 @@ class Desmond:
             self.jump()
 
 
-        if self.step_index == len(self.run_img)*5:
+        if self.step_index >= len(self.run_img)*5:
             self.step_index = 0
 
-        if self.jump_index == len(self.jump_img)*5:
+        if self.jump_index >= len(self.jump_img)*5:
             self.jump_index = 0
 
 
@@ -91,26 +90,24 @@ class Desmond:
             self.desmond_jump = True
             self.desmond_run = False
 
-        elif not self.desmond_jump or user_input[pygame.K_DOWN] :
-            self.desmond_jump = False
+        elif not self.desmond_jump:
             self.desmond_run = True
 
 
     def jump(self):
         self.image = self.jump_img[self.jump_index//5]
-        if self.desmond_jump:
-            self.desmond_rect.y -= self.jump_vel * 4
-            self.jump_vel -= 0.8
-            self.jump_index += 1
+        self.desmond_rect.y -= self.jump_vel * 4
+        self.jump_vel -= 0.8
+        self.jump_index += 1
         if self.jump_vel < - self.JUMP_VEL:
             self.desmond_jump = False
             self.jump_vel = self.JUMP_VEL
+            self.desmond_rect.y = self.Y_POS
 
 
 
     def run(self):
         self.image = self.run_img[self.step_index//5]
-        self.desmond_rect = self.image.get_rect()
         self.desmond_rect.x = self.X_POS
         self.desmond_rect.y = self.Y_POS
         self.step_index += 1
@@ -127,7 +124,7 @@ class Desmond:
 class Clouds():
     def __init__(self):
         self.x = SCREEN_WIDTH + random.randint(800,1000)
-        self.y = SCREEN_HEIGHT + random.randint(50,100)
+        self.y = random.randint(50,100)
         self.image = clouds[random.randint(0,1)]
         self.width = self.image.get_width()
 
@@ -146,34 +143,38 @@ class Clouds():
 
 class Obstacle():
     def __init__(self, image, type):
-        self.image = image
+        self.images = image
         self.type = type
-        self.rect = self.image[self.type].get_rect()
+        self.image = self.images[self.type]
+        self.rect = self.image.get_rect()
+        self.rect.y += 10
         self.rect.x = SCREEN_WIDTH
 
     def update(self):
         self.rect.x -= game_speed
         if self.rect.x < -self.rect.width:
-            obstacles.pop()
+            obstacles.remove(self)
 
 
 
 
 
     def draw(self, SCREEN):
-        SCREEN.blit(self.image[self.type], self.rect)
+        SCREEN.blit(self.image, self.rect)
 
 class SmallRock(Obstacle):
     def __init__(self, image):
         self.type = random.randint(0,2)
         super().__init__(image,self.type)
         self.rect.y = 650
+        self.rect.bottom = GROUND_Y
 
 class LargeRock(Obstacle):
     def __init__(self, image):
         self.type = random.randint(0, 1)
         super().__init__(image, self.type)
         self.rect.y = 650
+        self.rect.bottom = GROUND_Y
 
 class SpaceShip(Obstacle):
     def __init__(self, image):
@@ -184,7 +185,7 @@ class SpaceShip(Obstacle):
 
 
 
-
+death_count = 0
 def main(SCREEN):
     global game_speed,x_pos_bg,y_pos_bg,points,obstacles
     run = True
@@ -197,14 +198,11 @@ def main(SCREEN):
     points = 0
     font = pygame.font.SysFont('comicsans', 30)
     obstacles = []
-    death_count = 0
 
 
     def score():
         global points, game_speed
         points += 0.5
-        if points % 200 == 0:
-            game_speed *= 1.2
 
 
         text = font.render('Score: ' + str(points), True, (255,255,255))
@@ -212,7 +210,7 @@ def main(SCREEN):
         textRect.centerx = 1150
         textRect.centery = 100
         SCREEN.blit(text, textRect)
-
+        game_speed = 10+(points/50)
 
 
 
@@ -236,11 +234,12 @@ def main(SCREEN):
         player.update(user_input)
 
         if len(obstacles) == 0:
-            if random.randint(0, 2) == 0:
+            choice = random.randint(0,2)
+            if choice == 0:
                 obstacles.append(SmallRock(rock_small))
-            elif random.randint(0, 2) == 1:
+            elif choice == 1:
                 obstacles.append(LargeRock(rock_large))
-            elif random.randint(0, 2) == 2:
+            else:
                 obstacles.append(SpaceShip(ships))
 
         for obstacle in obstacles:
@@ -249,7 +248,7 @@ def main(SCREEN):
             if player.desmond_rect.colliderect(obstacle.rect):
                 pygame.time.delay(2000)
                 death_count += 1
-                menu(death_count)
+                return death_count
 
 
         CLOUD.draw(SCREEN)
@@ -269,12 +268,12 @@ def menu(death_count):
 
         if death_count == 0:
             text = font.render("Press any Key to Start", True, (0, 0, 0))
-        elif death_count > 0:
+        '''elif death_count > 0:
             text = font.render("Press any Key to Restart", True, (0, 0, 0))
             score = font.render("Your Score: " + str(points), True, (0, 0, 0))
             scoreRect = score.get_rect()
             scoreRect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 50)
-            SCREEN.blit(score, scoreRect)
+            SCREEN.blit(score, scoreRect)'''
         textRect = text.get_rect()
         textRect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
         SCREEN.blit(text, textRect)
@@ -285,10 +284,13 @@ def menu(death_count):
                 pygame.quit()
                 run = False
             if event.type == pygame.KEYDOWN:
-                main(SCREEN)
+                return
+
+while True:
+    menu(death_count)
+    death_count = main(SCREEN)
 
 
-menu(death_count=0)
 
 
 
